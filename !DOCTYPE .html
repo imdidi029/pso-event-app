@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Event Success Analysis with PSO</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.7.0/math.min.js"></script>
+    <style>
+        .particle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+        #pso-canvas {
+            position: relative;
+            height: 300px;
+            border: 1px solid #e5e7eb;
+            background-color: #f9fafb;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-blue-600">Event Success Analysis with PSO</h1>
+            <p class="text-gray-600 mt-2">Analyzing 200 respondents across 21 success indicators</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+            <!-- Dataset Card -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Dataset Overview
+                </h2>
+                <div class="space-y-3">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Total Respondents:</span>
+                        <span class="font-medium">200</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Indicators:</span>
+                        <span class="font-medium">21</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Optimization Problem:</span>
+                        <span class="font-medium">21D Space</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PSO Parameters -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    PSO Configuration
+                </h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Particles</label>
+                        <input type="number" id="particle-count" value="50" class="w-full px-3 py-2 border rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Iterations</label>
+                        <input type="number" id="iteration-count" value="100" class="w-full px-3 py-2 border rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Inertia</label>
+                        <input type="number" id="inertia" value="0.8" step="0.1" class="w-full px-3 py-2 border rounded-md">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Acceleration</label>
+                        <input type="number" id="acceleration" value="1.2" step="0.1" class="w-full px-3 py-2 border rounded-md">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Optimized Results -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2 text-purple-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                    </svg>
+                    Optimization Results
+                </h2>
+                <div id="results-container" class="space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Best Score:</span>
+                        <span class="font-medium" id="best-score">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Avg. Score:</span>
+                        <span class="font-medium" id="avg-score">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Convergence:</span>
+                        <span class="font-medium" id="convergence">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Key Indicators:</span>
+                        <span class="font-medium" id="key-indicators">-</span>
+                    </div>
+                </div>
+                <button id="run-optimization" class="mt-4 w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition duration-300">
+                    Run Optimization
+                </button>
+            </div>
+        </div>
+
+        <!-- Visualization Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- PSO Visualization -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Optimization Process Visualization</h2>
+                <div id="pso-canvas"></div>
+                <div class="mt-4 text-sm text-gray-600">
+                    <p>Each particle represents a combination of indicator weights searching for the optimal configuration.</p>
+                </div>
+            </div>
+
+            <!-- Convergence Chart -->
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-4">Convergence Graph</h2>
+                <canvas id="convergence-chart" height="300"></canvas>
+                <div class="mt-4 text-sm text-gray-600">
+                    <p>Shows the improvement of the best solution found over iterations.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Indicator Importance -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Indicator Importance Ranking</h2>
+            <canvas id="indicator-chart" height="400"></canvas>
+            <div class="mt-4 text-sm text-gray-600">
+                <p>Visualizes the relative importance of each indicator based on the optimized weights.</p>
+            </div>
+        </div>
+
+        <!-- Respondent Segmentation -->
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold text-gray-800 mb-4">Respondent Segmentation</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <canvas id="satisfaction-chart" height="250"></canvas>
+                <canvas id="cluster-chart" height="250"></canvas>
+            </div>
+            <div class="mt-4 text-sm text-gray-600">
+                <p>Identifies respondent clusters based on their satisfaction patterns across indicators.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Synthetic dataset: 200 respondents, 21 indicators (scaled 1-10)
+        const generateDataset = () => {
+            const indicators = [
+                'Speaker Quality', 'Content Relevance', 'Venue Comfort', 
+                'Networking Opportunities', 'Food Quality', 'Registration Process',
+                'Event Organization', 'Time Management', 'Technical Support',
+                'Materials Provided', 'Interaction Quality', 'Presentation Quality',
+                'Learning Experience', 'Relevance to Work', 'Practical Application',
+                'Event Duration', 'Break Frequency', 'Session Variety',
+                'Connectivity', 'Value for Money', 'Overall Satisfaction'
+            ];
+            
+            const respondents = Array.from({length: 200}, () => 
+                indicators.map(() => Math.floor(Math.random() * 5) + 6) // Random between 6-10
+            );
+            
+            // Add some clusters (groups with similar patterns)
+            respondents.slice(0, 50).forEach(r => {
+                r[0] = Math.min(10, r[0] + 2); // Higher Speaker Quality
+                r[3] = Math.min(10, r[3] + 1); // Higher Networking
+            });
+            
+            respondents.slice(50, 100).forEach(r => {
+                r[1] = Math.min(10, r[1] + 2); // Higher Content Relevance
+                r[13] = Math.min(10, r[13] + 1); // Higher Relevance to Work
+            });
+            
+            return { indicators, respondents };
+        };
+
+        const { indicators, respondents } = generateDataset();
+        let psoInstance = null;
+        let bestSolution = null;
+        let convergenceData = [];
+
+        // Initialize charts
+        const initCharts = () => {
+            // Convergence Chart
+            const convergenceCtx = document.getElementById('convergence-chart').getContext('2d');
+            new Chart(convergenceCtx, {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Best Fitness',
+                        data: [],
+                        borderColor: 'rgba(59, 130, 246, 1)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: false,
+                            title: {
+                                display: true,
+                                text: 'Fitness Score'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Iteration'
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Indicator Importance Chart
+            const indicatorCtx = document.getElementById('indicator-chart').getContext('2d');
+            new Chart(indicatorCtx, {
+                type: 'bar',
+                data: {
+                    labels: indicators,
+                    datasets: [{
+                        label: 'Optimized Weight',
+                        data: Array(indicators.length).fill(0),
+                        backgroundColor: 'rgba(99, 102, 241, 0.6)',
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    indexAxis: 'y',
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 1
+                        }
+                    }
+                }
+            });
+
+            // Satisfaction Distribution Chart
+            const satisfactionCtx = document.getElementById('satisfaction-chart').getContext('2d');
+            new Chart(satisfactionCtx, {
+                type: 'radar',
+                data: {
+                    labels: indicators.slice(0, 10),
+                    datasets: [
+                        {
+                            label: 'Cluster 1',
+                            data: Array(10).fill(7),
+                            backgroundColor: 'rgba(59, 130, 246, 0.2)',
+                            borderColor: 'rgba(59, 130, 246, 1)',
+                            pointBackgroundColor: 'rgba(59, 130, 246, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(59, 130, 246, 1)'
+                        },
+                        {
+                            label: 'Cluster 2',
+                            data: Array(10).fill(6),
+                            backgroundColor: 'rgba(16, 185, 129, 0.2)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            pointBackgroundColor: 'rgba(16, 185, 129, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(16, 185, 129, 1)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        r: {
+                            angleLines: {
+                                display: true
+                            },
+                            suggestedMin: 5,
+                            suggestedMax: 10
+                        }
+                    }
+                }
+            });
+
+            // Cluster Distribution Chart
+            const clusterCtx = document.getElementById('cluster-chart').getContext('2d');
+            new Chart(clusterCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Highly Satisfied', 'Moderately Satisfied', 'Less Satisfied'],
+                    datasets: [{
+                        data: [80, 90, 30],
+                        backgroundColor: [
+                            'rgba(16, 185, 129, 0.7)',
+                            'rgba(59, 130, 246, 0.7)',
+                            'rgba(239, 68, 68, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgba(16, 185, 129, 1)',
+                            'rgba(59, 130, 246, 1)',
+                            'rgba(239, 68, 68, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        };
+
+        // PSO Implementation
+        class PSO {
+            constructor(dimensions, particleCount, iterations, inertia, acceleration) {
+                this.dimensions = dimensions;
+                this.particleCount = particleCount;
+                this.iterations = iterations;
+                this.inertia = inertia;
+                this.acceleration = acceleration;
+                
+                this.particles = [];
+                this.globalBest = { position: [], fitness: -Infinity };
+                this.convergence = [];
+                
+                this.initParticles();
+            }
+            
+            initParticles() {
+                for (let i = 0; i < this.particleCount; i++) {
+                    const position = Array(this.dimensions).fill(0).map(() => Math.random());
+                    const velocity = Array(this.dimensions).fill(0).map(() => Math.random() * 0.1);
+                    
+                    const fitness = this.calculateFitness(position);
+                    
+                    this.particles.push({
+                        position,
+                        velocity,
+                        bestPosition: [...position],
+                        bestFitness: fitness
+                    });
+                    
+                    if (fitness > this.globalBest.fitness) {
+                        this.globalBest.position = [...position];
+                        this.globalBest.fitness = fitness;
+                    }
+                }
+            }
+            
+            calculateFitness(position) {
+                // Normalize weights to sum to 1
+                const sum = position.reduce((a, b) => a + b, 0);
+                const weights = position.map(w => w / sum);
+                
+                // Calculate weighted score for each respondent
+                const respondentScores = respondents.map(respondent => {
+                    return respondent.reduce((sum, val, i) => sum + val * weights[i], 0);
+                });
+                
+                // Our fitness function: average score of top 20% respondents
+                respondentScores.sort((a, b) => b - a);
+                const top20Percent = Math.floor(respondents.length * 0.2);
+                return respondentScores.slice(0, top20Percent).reduce((a, b) => a + b, 0) / top20Percent;
+            }
+            
+            runIteration() {
+                for (const particle of this.particles) {
+                    // Update velocity
+                    for (let d = 0; d < this.dimensions; d++) {
+                        const r1 = Math.random();
+                        const r2 = Math.random();
+                        
+                        const cognitive = this.acceleration * r1 * 
+                                         (particle.bestPosition[d] - particle.position[d]);
+                        const social = this.acceleration * r2 * 
+                                      (this.globalBest.position[d] - particle.position[d]);
+                        
+                        particle.velocity[d] = this.inertia * particle.velocity[d] + 
+                                               cognitive + social;
+                        
+                        // Clamp velocity
+                        particle.velocity[d] = Math.max(-0.25, Math.min(0.25, particle.velocity[d]));
+                    }
+                    
+                    // Update position
+                    for (let d = 0; d < this.dimensions; d++) {
+                        particle.position[d] += particle.velocity[d];
+                        
+                        // Clamp position between 0 and 1
+                        particle.position[d] = Math.max(0, Math.min(1, particle.position[d]));
+                    }
+                    
+                    // Evaluate fitness
+                    const fitness = this.calculateFitness(particle.position);
+                    
+                    // Update personal best
+                    if (fitness > particle.bestFitness) {
+                        particle.bestPosition = [...particle.position];
+                        particle.bestFitness = fitness;
+                        
+                        // Update global best
+                        if (fitness > this.globalBest.fitness) {
+                            this.globalBest.position = [...particle.position];
+                            this.globalBest.fitness = fitness;
+                        }
+                    }
+                }
+                
+                this.convergence.push(this.globalBest.fitness);
+                return [...this.globalBest.position];
+            }
+        }
+
+        // Visualization functions
+        const visualizePSO = (positions, bestPosition) => {
+            const canvas = document.getElementById('pso-canvas');
+            canvas.innerHTML = '';
+            
+            const width = canvas.clientWidth;
+            const height = canvas.clientHeight;
+            
+            // Draw best position
+            const bestEl = document.createElement('div');
+            bestEl.className = 'particle';
+            bestEl.style.backgroundColor = '#10B981';
+            bestEl.style.width = '16px';
+            bestEl.style.height = '16px';
+            bestEl.style.left = `${width * 0.9 + width * 0.1 * bestPosition[0]}px`;
+            bestEl.style.top = `${height * 0.9 + height * 0.1 * bestPosition[1]}px`;
+            bestEl.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.3)';
+            canvas.appendChild(bestEl);
+            
+            // Draw particles (visualizing first two dimensions)
+            positions.forEach(pos => {
+                const particleEl = document.createElement('div');
+                particleEl.className = 'particle';
+                particleEl.style.backgroundColor = '#3B82F6';
+                particleEl.style.left = `${width * 0.9 + width * 0.1 * pos.position[0]}px`;
+                particleEl.style.top = `${height * 0.9 + height * 0.1 * pos.position[1]}px`;
+                canvas.appendChild(particleEl);
+            });
+        };
+
+        // Update charts with new data
+        const updateCharts = (bestWeights) => {
+            // Update convergence chart
+            const convergenceChart = Chart.getChart('convergence-chart');
+            convergenceChart.data.labels = Array(convergenceData.length).fill().map((_, i) => i+1);
+            convergenceChart.data.datasets[0].data = convergenceData;
+            convergenceChart.update();
+            
+            // Update indicator weights
+            const sum = bestWeights.reduce((a, b) => a + b, 0);
+            const normalizedWeights = bestWeights.map(w => w / sum);
+            const indicatorChart = Chart.getChart('indicator-chart');
+            indicatorChart.data.datasets[0].data = normalizedWeights;
+            indicatorChart.update();
+            
+            // Find and display top 3 indicators
+            const sortedIndicators = indicators.map((ind, idx) => ({
+                indicator: ind,
+                weight: normalizedWeights[idx]
+            })).sort((a, b) => b.weight - a.weight);
+            
+            document.getElementById('key-indicators').textContent = 
+                sortedIndicators.slice(0, 3).map(ind => ind.indicator).join(', ');
+            
+            // Update results
+            document.getElementById('best-score').textContent = Math.round(Math.max(...convergenceData) * 100) / 100;
+            document.getElementById('avg-score').textContent = Math.round((convergenceData.reduce((a, b) => a + b, 0) / convergenceData.length) * 100) / 100;
+            document.getElementById('convergence').textContent = `${Math.round((convergenceData[0] / convergenceData[convergenceData.length-1] - 1) * 100)}% improvement`;
+        };
+
+        // Run optimization
+        document.getElementById('run-optimization').addEventListener('click', async () => {
+            const particleCount = parseInt(document.getElementById('particle-count').value);
+            const iterations = parseInt(document.getElementById('iteration-count').value);
+            const inertia = parseFloat(document.getElementById('inertia').value);
+            const acceleration = parseFloat(document.getElementById('acceleration').value);
+            
+            // Reset best solution
+            bestSolution = null;
+            convergenceData = [];
+            
+            // Initialize PSO
+            psoInstance = new PSO(indicators.length, particleCount, iterations, inertia, acceleration);
+            
+            // Run iterations
+            for (let i = 0; i < iterations; i++) {
+                const bestPosition = psoInstance.runIteration();
+                convergenceData.push(psoInstance.globalBest.fitness);
+                
+                // Visualize first 2 dimensions
+                visualizePSO(psoInstance.particles, bestPosition);
+                
+                // Update charts every few iterations
+                if (i % 10 === 0 || i === iterations - 1) {
+                    updateCharts(psoInstance.globalBest.position);
+                }
+                
+                // Small delay for visualization
+                await new Promise(resolve => setTimeout(resolve, 50));
+            }
+            
+            bestSolution = psoInstance.globalBest.position;
+        });
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', initCharts);
+    </script>
+</body>
+</html>
